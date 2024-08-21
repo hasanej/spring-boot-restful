@@ -45,7 +45,6 @@ public class ContactControllerTest {
     void setUp() {
         contactRepository.deleteAll();
         userRepository.deleteAll();
-        ;
 
         User user = new User();
         user.setUsername("hasan");
