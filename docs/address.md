@@ -105,7 +105,7 @@ Response Body (Failed):
 ```
 
 ## Remove Address
-Endpoint: DELETE /api/contacts/{idContact}/addresses/{idAddress}
+Endpoint: DELETE /api/contacts/{contactId}/addresses/{addressId}
 
 Request Header:
 - X-API-TOKEN: Token (Mandatory)

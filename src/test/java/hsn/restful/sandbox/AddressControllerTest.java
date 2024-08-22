@@ -2,6 +2,7 @@ package hsn.restful.sandbox;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hsn.restful.sandbox.entity.Address;
 import hsn.restful.sandbox.entity.Contact;
 import hsn.restful.sandbox.entity.User;
 import hsn.restful.sandbox.model.requests.CreateAddressRequest;
@@ -19,11 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -40,7 +39,7 @@ public class AddressControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -118,6 +117,56 @@ public class AddressControllerTest {
             assertEquals(request.getCountry(), response.getData().getCountry());
 
             assertTrue(addressRepository.existsById(response.getData().getId()));
+        });
+    }
+
+    @Test
+    void getAddressNotFound() throws Exception {
+        mockMvc.perform(
+                get("/api/contacts/hasan/addresses/1")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "token")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            assertNotNull(response.getErrors());
+        });
+    }
+
+    @Test
+    void getAddressSuccess() throws Exception {
+        Contact contact = contactRepository.findById("hasan").orElse(null);
+
+        Address address = new Address();
+        address.setId("test");
+        address.setContact(contact);
+        address.setStreet("Jalan");
+        address.setCity("Jakarta");
+        address.setProvince("DKI Jakarta");
+        address.setPostalCode("11233");
+        address.setCountry("Indonesia");
+        addressRepository.save(address);
+
+        mockMvc.perform(
+                get("/api/contacts/hasan/addresses/test")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "token")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            assertNull(response.getErrors());
+            assertEquals(address.getId(), response.getData().getId());
+            assertEquals(address.getStreet(), response.getData().getStreet());
+            assertEquals(address.getCity(), response.getData().getCity());
+            assertEquals(address.getProvince(), response.getData().getProvince());
+            assertEquals(address.getPostalCode(), response.getData().getPostalCode());
+            assertEquals(address.getCountry(), response.getData().getCountry());
         });
     }
 }
