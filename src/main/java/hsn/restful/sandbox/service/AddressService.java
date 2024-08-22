@@ -4,6 +4,7 @@ import hsn.restful.sandbox.entity.Address;
 import hsn.restful.sandbox.entity.Contact;
 import hsn.restful.sandbox.entity.User;
 import hsn.restful.sandbox.model.requests.CreateAddressRequest;
+import hsn.restful.sandbox.model.requests.UpdateAddressRequest;
 import hsn.restful.sandbox.model.responses.AddressResponse;
 import hsn.restful.sandbox.repository.AddressRepository;
 import hsn.restful.sandbox.repository.ContactRepository;
@@ -66,5 +67,26 @@ public class AddressService {
                 .country(address.getCountry())
                 .postalCode(address.getPostalCode())
                 .build();
+    }
+
+    @Transactional
+    public AddressResponse update(User user, UpdateAddressRequest request) {
+        validationService.validate(request);
+
+        Contact contact = contactRepository.findFirstByUserAndId(user, request.getContactId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact is not found."));
+
+        Address address = addressRepository.findFirstByContactAndId(contact, request.getAddressId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Address is not found."));
+
+        address.setStreet(request.getStreet());
+        address.setCity(request.getCity());
+        address.setProvince(request.getProvince());
+        address.setCountry(request.getCountry());
+        address.setPostalCode(request.getPostalCode());
+
+        addressRepository.save(address);
+
+        return toAddressResponse(address);
     }
 }

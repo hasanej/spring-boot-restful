@@ -6,6 +6,7 @@ import hsn.restful.sandbox.entity.Address;
 import hsn.restful.sandbox.entity.Contact;
 import hsn.restful.sandbox.entity.User;
 import hsn.restful.sandbox.model.requests.CreateAddressRequest;
+import hsn.restful.sandbox.model.requests.UpdateAddressRequest;
 import hsn.restful.sandbox.model.responses.AddressResponse;
 import hsn.restful.sandbox.model.responses.WebResponse;
 import hsn.restful.sandbox.repository.AddressRepository;
@@ -21,8 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -167,6 +167,71 @@ public class AddressControllerTest {
             assertEquals(address.getProvince(), response.getData().getProvince());
             assertEquals(address.getPostalCode(), response.getData().getPostalCode());
             assertEquals(address.getCountry(), response.getData().getCountry());
+        });
+    }
+
+    @Test
+    void updateAddressBadRequest() throws Exception {
+        UpdateAddressRequest request = new UpdateAddressRequest();
+        request.setCountry("");
+
+        mockMvc.perform(
+                put("/api/contacts/hasan/addresses/test")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "token")
+        ).andExpectAll(
+                status().isBadRequest()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            assertNotNull(response.getErrors());
+        });
+    }
+
+    @Test
+    void updateAddressSuccess() throws Exception {
+        Contact contact = contactRepository.findById("hasan").orElse(null);
+
+        Address address = new Address();
+        address.setId("test");
+        address.setContact(contact);
+        address.setStreet("Jalan");
+        address.setCity("Jakarta");
+        address.setProvince("DKI Jakarta");
+        address.setPostalCode("11233");
+        address.setCountry("Indonesia");
+        addressRepository.save(address);
+
+        UpdateAddressRequest request = new UpdateAddressRequest();
+        request.setCity("Jakarta Pusat - New");
+        request.setStreet("Jl. Jalan - New");
+        request.setProvince("DKI Jakarta - New");
+        request.setPostalCode("33211");
+        request.setCountry("Indonesia - New");
+
+        mockMvc.perform(
+                put("/api/contacts/hasan/addresses/test")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "token")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            assertNull(response.getErrors());
+            assertEquals(request.getCity(), response.getData().getCity());
+            assertEquals(request.getStreet(), response.getData().getStreet());
+            assertEquals(request.getProvince(), response.getData().getProvince());
+            assertEquals(request.getPostalCode(), response.getData().getPostalCode());
+            assertEquals(request.getCountry(), response.getData().getCountry());
+
+            assertTrue(addressRepository.existsById(response.getData().getId()));
         });
     }
 }
