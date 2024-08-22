@@ -6,6 +6,7 @@ import hsn.restful.sandbox.entity.User;
 import hsn.restful.sandbox.model.requests.CreateAddressRequest;
 import hsn.restful.sandbox.model.requests.UpdateAddressRequest;
 import hsn.restful.sandbox.model.responses.AddressResponse;
+import hsn.restful.sandbox.model.responses.WebResponse;
 import hsn.restful.sandbox.repository.AddressRepository;
 import hsn.restful.sandbox.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,5 +89,16 @@ public class AddressService {
         addressRepository.save(address);
 
         return toAddressResponse(address);
+    }
+
+    @Transactional
+    public void delete(User user, String contactId, String addressId) {
+        Contact contact = contactRepository.findFirstByUserAndId(user, contactId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact not found."));
+
+        Address address = addressRepository.findFirstByContactAndId(contact, addressId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found."));
+
+        addressRepository.delete(address);
     }
 }
