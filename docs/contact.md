@@ -37,7 +37,7 @@ Response Body (Failed):
 ```
 
 ## Update Contact
-Endpoint: PUT /api/contacts/{idContact}
+Endpoint: PUT /api/contacts/{contactId}
 
 Request Header:
 - X-API-TOKEN: Token (Mandatory)
@@ -73,7 +73,7 @@ Response Body (Failed):
 ```
 
 ## Get Contact
-Endpoint: GET /api/contacts/{idContact}
+Endpoint: GET /api/contacts/{contactId}
 
 Request Header:
 - X-API-TOKEN: Token (Mandatory)
@@ -139,7 +139,7 @@ Response Body (Failed, 401):
 ```
 
 ## Remove Contact
-Endpoint: DELETE /api/contacts/{idContact}
+Endpoint: DELETE /api/contacts/{contactId}
 
 Request Header:
 - X-API-TOKEN: Token (Mandatory)
